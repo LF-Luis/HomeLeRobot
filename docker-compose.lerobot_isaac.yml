@@ -1,0 +1,20 @@
+services:
+  lerobot_isaac:
+    build:
+      context: .
+      dockerfile: Dockerfile.lerobot_isaac
+    image: lerobot_isaac:0.0.1
+    container_name: lerobot_isaac_dev
+    network_mode: host
+    ipc: host
+    gpus: all
+    environment:
+      - ACCEPT_EULA=Y
+      - DISPLAY=${DISPLAY}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${XAUTHORITY:-~/.Xauthority}:/root/.Xauthority:ro
+    stdin_open: true
+    tty: true
