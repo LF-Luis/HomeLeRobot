@@ -1,15 +1,14 @@
 services:
-  lerobot_isaac:
+  gr00t:
     build:
-      context: .
-      dockerfile: Dockerfile.lerobot_isaac
-    image: lerobot_isaac:0.0.1
-    container_name: lerobot_isaac_dev
+      context: https://github.com/NVIDIA/Isaac-GR00T.git#063773282a98ea0c81e6a39d38f7683a771062f9
+      dockerfile: Dockerfile
+    image: gr00t_hack_dev:0.0.1
+    container_name: gr00t_dev
     network_mode: host
     ipc: host
     gpus: all
     environment:
-      - ACCEPT_EULA=Y
       - DISPLAY=${DISPLAY}
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all

@@ -2,9 +2,10 @@
 
 ## LeRobot in Isaac Sim
 - Dockerfile TODOs
-    - pip install source/isaaclab_rl
+    [ ] pip install source/isaaclab_rl
         - `/isaac-sim/python.sh -m pip install -e source/isaaclab_rl`
-    - map /isaac-sim/python.sh to python and python3 in runtime env
+        [ ] WARN: Added it in Dockerfile but didn't seem to install
+    [x] map /isaac-sim/python.sh to python and python3 in runtime env
     - Figure out if ./isaaclab.sh --install is needed or what minimal version of it works for us
         - Bug: https://github.com/isaac-sim/IsaacLab/issues/3037
             - Fix: Comment this out: https://github.com/isaac-sim/IsaacLab/blob/90b79bb2d44feb8d833f260f2bf37da3487180ba/isaaclab.sh#L279-L295
@@ -21,6 +22,9 @@ docker exec -it lerobot_isaac_dev /bin/bash
 git clone https://github.com/LightwheelAI/leisaac.git
 cd leisaac
 /isaac-sim/python.sh -m pip install -e source/leisaac
+/isaac-sim/python.sh -m pip install -e source/isaaclab_rl
+/isaac-sim/python.sh -m pip install -e "source/leisaac[gr00t]"  # FIXME: Add to Dockerfile
+# If you get errors running these pip installs that's fine, there's some bug there
 ```
 
 ### Container -- Common flow
@@ -66,6 +70,7 @@ Keyboard teleop:
     --teleop_device=keyboard \
     --num_envs=1 \
     --device=cuda \
+    --enable_cameras \
     --dataset_file=./datasets/dataset.hdf5
 
 # Temp workaround for a T4:
@@ -89,29 +94,63 @@ Other helpful scripts:
 /isaac-sim/python.sh scripts/environments/list_envs.py
 ```
 
-## Setup GR00T N1.5 Local Model-Inference Service
+## GR00T N1.5
+Setup:
+```bash
+docker compose -f docker-compose.gr00t_n1_5.yml build
+docker compose -f docker-compose.gr00t_n1_5.yml up -d
+docker exec -it gr00t_dev /bin/bash
+```
 
-**NOTE: I have not tried these steps yet:**
-- Create docker container using Dockerfile from here: https://github.com/NVIDIA/Isaac-GR00T
-- Run GR00T N1.5 model inference:
-    ```bash
-    python scripts/inference_service.py --server \
-        --model-path nvidia/GR00T-N1.5-3B \
-        --embodiment-tag oxe_droid \
-        --data-config so100 \
-        --port 5555
-    ```
+## LeRobot in Isaac + GR00T N1.5 Model-Inference Service
+Run GR00T N1.5 model inference:
+https://github.com/NVIDIA/Isaac-GR00T?tab=readme-ov-file#4-evaluation
+```text
+> EmbodimentTag.GR1: Designed for humanoid robots with dexterous hands using absolute joint space control
+> EmbodimentTag.OXE_DROID: Optimized for single arm robots using delta end-effector (EEF) control
+> EmbodimentTag.AGIBOT_GENIE1: Built for humanoid robots with grippers using absolute joint space control
+```
+```bash
+# https://github.com/NVIDIA/Isaac-GR00T?tab=readme-ov-file#4-evaluation
+docker exec -it gr00t_dev /bin/bash
+python scripts/inference_service.py --server \
+    --model-path nvidia/GR00T-N1.5-3B \
+    --embodiment-tag oxe_droid \
+    --data-config oxe_droid \
+    --port 5555
+```
+Note: When running in real SO robot we'll use `--data-config so100`
+
 - Run LeIsaac being driven by model inference service:
-    ```bash
-    python scripts/evaluation/policy_inference.py \
-        --task=LeIsaac-SO101-PickOrange-v0 \
-        --eval_rounds=10 \
-        --policy_type=gr00tn1.5 \
-        --policy_host=localhost \
-        --policy_port=5555 \
-        --policy_timeout_ms=5000 \
-        --policy_action_horizon=16 \
-        --policy_language_instruction="Pick up the orange and place it on the plate" \
-        --device=cuda \
-        --enable_cameras
-    ```
+```bash
+# On a good GPU, with plenty of CPU cores:
+/isaac-sim/python.sh scripts/evaluation/policy_inference.py \
+    --task=LeIsaac-SO101-PickOrange-v0 \
+    --eval_rounds=10 \
+    --policy_type=gr00tn1.5 \
+    --policy_host=localhost \
+    --policy_port=5555 \
+    --policy_timeout_ms=5000 \
+    --policy_action_horizon=16 \
+    --policy_language_instruction="Pick up the orange and place it on the plate" \
+    --device=cuda \
+    --enable_cameras
+
+# If your machine struggles run this instead
+/isaac-sim/python.sh scripts/evaluation/policy_inference.py \
+    --task=LeIsaac-SO101-PickOrange-v0 \
+    --eval_rounds=10 \
+    --policy_type=gr00tn1.5 \
+    --policy_host=localhost \
+    --policy_port=5555 \
+    --policy_timeout_ms=5000 \
+    --policy_action_horizon=16 \
+    --policy_language_instruction="Pick up the orange and place it on the plate" \
+    --device=cuda \
+    --enable_cameras
+    -- \
+    --/rtx/reflections/enabled=false \
+    --/rtx/indirectDiffuse/enabled=false \
+    --/rtx/ambientOcclusion/enabled=false \
+    --/app/asyncRendering=false
+```
