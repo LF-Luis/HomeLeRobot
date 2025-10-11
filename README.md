@@ -1,5 +1,7 @@
 # Repo Name
 
+`https://docs.google.com/document/d/1WJGbU4o9SW0a0QvtKFXR3vv9AS1Db5fBztyG6jGkbsY`
+
 ## Fine-Tuning
 If you don't have one, create a W&B account ahead of time to view live training metrics.  
 
@@ -34,6 +36,14 @@ python scripts/gr00t_finetune.py \
     --max-steps 10000 \
     --data-config so100_dualcam \
     --video-backend torchvision_av
+```
+
+## Upload model to HF
+Upload model checkpoint to HF, matching GR00T N1.5 format so that we can easily use model with other GR00T scripts.  
+```bash
+conda activate gr00t
+hf auth login
+python upload_model_to_hf.py /home/ubuntu/model_ft_output/checkpoint-2000 dll-hackathon-102025/gr00t_n1.5-toothpick-test ckpt-2000
 ```
 
 ## LeRobot in Isaac Sim
