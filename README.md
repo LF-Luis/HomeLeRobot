@@ -1,5 +1,41 @@
 # Repo Name
 
+## Fine-Tuning
+If you don't have one, create a W&B account ahead of time to view live training metrics.  
+
+Below are reproducible steps to fine-tune GR00T on a Lambda VM (I used an 1xA100 40 GB).
+
+```bash
+# Setup Lambda machine
+bash hack_code/lambda_setup.sh
+# Activate env
+conda activate gr00t
+# Fast download datasets (NOTE: Use "single" or "dual" cam setup)
+python /home/ubuntu/hack_code/get_hf_data.py \
+    --datasets dll-hackathon-102025/drew-01 \
+               dll-hackathon-102025/luis-02 \
+    --base_dir /home/ubuntu/train_dataset/ \
+    --cam single
+# Finetune single-cam setup
+python scripts/gr00t_finetune.py \
+    --dataset-path /home/ubuntu/train_dataset/drew-01 \
+    --dataset-path /home/ubuntu/train_dataset/luis-02 \
+    --num-gpus 1 \
+    --output-dir /home/ubuntu/model_ft_output \
+    --max-steps 10000 \
+    --data-config so100 \
+    --video-backend torchvision_av
+# Finetune dual-cam setup
+python scripts/gr00t_finetune.py \
+    --dataset-path /home/ubuntu/train_dataset/drew-01 \
+    --dataset-path /home/ubuntu/train_dataset/luis-02 \
+    --num-gpus 1 \
+    --output-dir /home/ubuntu/model_ft_output \
+    --max-steps 10000 \
+    --data-config so100_dualcam \
+    --video-backend torchvision_av
+```
+
 ## LeRobot in Isaac Sim
 - Dockerfile TODOs
     [ ] pip install source/isaaclab_rl
@@ -10,6 +46,9 @@
         - Bug: https://github.com/isaac-sim/IsaacLab/issues/3037
             - Fix: Comment this out: https://github.com/isaac-sim/IsaacLab/blob/90b79bb2d44feb8d833f260f2bf37da3487180ba/isaaclab.sh#L279-L295
             - Run: `./isaaclab.sh --install`
+    [ ] Add Isaac Sim/Lab cache to compose file
+    [ ] For real env, try to match intrinsic/extrinsic of 2nd cam in so100_dualcam
+        - May not be possible, and we most likely are at a disadvantage bc of the wrist cam that comes with LeRobot
 
 ### Container -- First Time Setup
 First time setup, and anytime you need to rebuild:
@@ -18,12 +57,14 @@ xhost +local:root
 docker compose -f docker-compose.lerobot_isaac.yml build
 docker compose -f docker-compose.lerobot_isaac.yml up -d
 docker exec -it lerobot_isaac_dev /bin/bash
+# FIXME: Add to Dockerfile:
 # FIXME: Get away from building inside of LightwheelAI/leisaac and build in our own src/ dir
 git clone https://github.com/LightwheelAI/leisaac.git
 cd leisaac
 /isaac-sim/python.sh -m pip install -e source/leisaac
-/isaac-sim/python.sh -m pip install -e source/isaaclab_rl
 /isaac-sim/python.sh -m pip install -e "source/leisaac[gr00t]"  # FIXME: Add to Dockerfile
+cd /workspace/IsaacLab
+/isaac-sim/python.sh -m pip install -e source/isaaclab_rl
 # If you get errors running these pip installs that's fine, there's some bug there
 ```
 
@@ -42,6 +83,7 @@ docker compose -f docker-compose.lerobot_isaac.yml down
 ### Running Teleop (keyboard or using Leader Arm)
 First download assets:
 ```bash
+# FIXME: Add to Dockerfile:
 # https://github.com/LightwheelAI/leisaac/releases/tag/v0.1.0
 wget https://github.com/LightwheelAI/leisaac/releases/download/v0.1.0/so101_follower.usd
 wget https://github.com/LightwheelAI/leisaac/releases/download/v0.1.0/kitchen_with_orange.zip
