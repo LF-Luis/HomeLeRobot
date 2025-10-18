@@ -31,6 +31,11 @@ python -m lerobot.teleoperate \
     --teleop.type=so101_leader \
     --teleop.port=/dev/tty.usbmodem5AAF2879201 \
     --teleop.id=alfred_leader
+
+# For our specific LeRobot calibration, our calibration file is in 
+# the repo's `assets` dir. 
+# cp -r assets/calibration ~/.cache/huggingface/lerobot/
+
 # Find your camera
 # Try on cam at a time, your iphone and mac will appear first showing 30 fps, the wrist and front cams will appear once you plug them in
 lerobot-find-cameras opencv
