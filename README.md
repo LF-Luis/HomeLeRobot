@@ -1,6 +1,69 @@
 # Repo Name
 
 `https://docs.google.com/document/d/1WJGbU4o9SW0a0QvtKFXR3vv9AS1Db5fBztyG6jGkbsY`
+`https://huggingface.co/dll-hackathon-102025`
+
+## Setup
+- [Configure Motors](https://huggingface.co/blog/nvidia/gr00t-n1-5-so101-tuning)
+- [Teleop](https://huggingface.co/docs/lerobot/getting_started_real_world_robot#teleoperate)
+- [Record dataset](https://huggingface.co/docs/lerobot/getting_started_real_world_robot#record-a-dataset)
+```bash
+# Install LeRobot: https://huggingface.co/docs/lerobot/installation
+# Find your port (one arm at a time)
+# E.g. you'll get
+#    Leader:   '/dev/tty.usbmodem5AAF2879201'
+#    Follower: '/dev/tty.usbmodem5A7C1186671'
+python lerobot/find_port.py
+# Setup motors (follower and leader)
+python -m lerobot.setup_motors \
+    --robot.type=so101_follower \
+    --robot.port=/dev/tty.usbmodem5A7C1186671
+# Setup motors (follower and leader)
+python -m lerobot.calibrate \
+    --robot.type=so101_follower \
+    --robot.port=/dev/tty.usbmodem5A7C1186671 \
+    --robot.id=alfred_follower
+# Teleop with no cameras
+python -m lerobot.teleoperate \
+    --robot.type=so101_follower \
+    --robot.port=/dev/tty.usbmodem5A7C1186671 \
+    --robot.id=alfred_follower \
+    --teleop.type=so101_leader \
+    --teleop.port=/dev/tty.usbmodem5AAF2879201 \
+    --teleop.id=alfred_leader
+# Find your camera
+# Try on cam at a time, your iphone and mac will appear first showing 30 fps, the wrist and front cams will appear once you plug them in
+lerobot-find-cameras opencv
+# Teleop with camera
+python -m lerobot.teleoperate \
+    --robot.type=so101_follower \
+    --robot.port=/dev/tty.usbmodem5A7C1186671 \
+    --robot.id=alfred_follower \
+    --robot.cameras="{ front: {type: opencv, index_or_path: 1, width: 1920, height: 1080, fps: 30}, wrist: {type: opencv, index_or_path: 0, width: 1920, height: 1080, fps: 30} }" \
+    --teleop.type=so101_leader \
+    --teleop.port=/dev/tty.usbmodem5AAF2879201 \
+    --teleop.id=alfred_leader \
+    --display_data=true
+
+# Log in to HF
+huggingface-cli login --token ${HUGGINGFACE_TOKEN} --add-to-git-credential
+# Record data to HF
+# Press Right Arrow (→): Early stop the current episode or reset time and move to the next.
+# Press Left Arrow (←): Cancel the current episode and re-record it.
+# Press Escape (ESC): Immediately stop the session, encode videos, and upload the dataset.
+python -m lerobot.record \
+    --robot.type=so101_follower \
+    --robot.port=/dev/tty.usbmodem5A7C1186671 \
+    --robot.id=alfred_follower \
+    --robot.cameras="{ front: {type: opencv, index_or_path: 1, width: 1920, height: 1080, fps: 30}, wrist: {type: opencv, index_or_path: 0, width: 1920, height: 1080, fps: 30} }" \
+    --teleop.type=so101_leader \
+    --teleop.port=/dev/tty.usbmodem5AAF2879201 \
+    --teleop.id=alfred_leader \
+    --display_data=true \
+    --dataset.repo_id=dll-hackathon-102025/oct_17_6pm \
+    --dataset.num_episodes=2 \
+    --dataset.single_task="Put orange slice in glass"
+```
 
 ## Fine-Tuning
 If you don't have one, create a W&B account ahead of time to view live training metrics.  
@@ -206,3 +269,14 @@ Note: When running in real SO robot we'll use `--data-config so100`
     --/rtx/ambientOcclusion/enabled=false \
     --/app/asyncRendering=false
 ```
+
+
+<details>
+<summary><strong>Resources/References</strong></summary>
+
+- [GR00T-N1.5-3B HF](https://huggingface.co/nvidia/GR00T-N1.5-3B)
+- [Post-Training Isaac GR00T N1.5 for LeRobot SO-101 Arm](https://huggingface.co/blog/nvidia/gr00t-n1-5-so101-tuning)
+- [HF LeRobot SO-101 Docs](https://huggingface.co/docs/lerobot/so101)
+- [LeIsaac GH](https://github.com/LightwheelAI/leisaac/tree/main)
+
+</details>
