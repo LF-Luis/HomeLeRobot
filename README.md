@@ -77,7 +77,7 @@ Below are reproducible steps to fine-tune GR00T on a Lambda VM (I used an 1xA100
 
 ```bash
 # Setup Lambda machine
-bash hack_code/lambda_setup.sh
+bash hack_code/ai_vm_setup.sh
 # Activate env
 conda activate gr00t
 # Fast download datasets (NOTE: Use "single" or "dual" cam setup)
@@ -104,6 +104,16 @@ python scripts/gr00t_finetune.py \
     --max-steps 10000 \
     --data-config so100_dualcam \
     --video-backend torchvision_av
+
+# Eval checkpoint with an evaluation set (do not use this dataset in training)
+python scripts/eval_policy.py --plot \
+    --model_path /home/ubuntu/model_ft_output/checkpoint-4000 \
+    --dataset-path /home/ubuntu/train_dataset/oct_19_430pm \
+    --embodiment-tag new_embodiment \
+    --data-config so100_dualcam \
+    --video-backend torchvision_av \
+    --modality-keys single_arm gripper \
+    --save_plot_path "/home/ubuntu/plots/ckp_4000.png"
 ```
 
 ## Upload model to HF
@@ -112,6 +122,9 @@ Upload model checkpoint to HF, matching GR00T N1.5 format so that we can easily 
 conda activate gr00t
 hf auth login
 python upload_model_to_hf.py /home/ubuntu/model_ft_output/checkpoint-2000 dll-hackathon-102025/gr00t_n1.5-toothpick-test ckpt-2000
+
+# To upload all checkpoints for debugging:
+python upload_model_to_hf.py /home/ubuntu/model_ft_output dll-hackathon-102025/gr00t_n1.5-pickup-orange-test
 ```
 
 ## LeRobot in Isaac Sim

@@ -2,7 +2,7 @@
 
 # Setup lightweight env in VM to FT groot model
 #
-# Use Lambda Stack 22.04, with no filesystem attached
+# Tested in Lambda Stack 22.04 (no filesystem attached needed). Or VESSL AI.
 # How to run: bash hack_code/lambda_setup.sh
 
 set -ex
