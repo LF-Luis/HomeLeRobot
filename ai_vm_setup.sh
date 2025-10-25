@@ -24,5 +24,6 @@ pip install --upgrade setuptools
 pip install -e .[base]
 pip install --no-build-isolation flash-attn==2.7.1.post4
 pip install hf_transfer
+pip install huggingface-hub
 
 exec bash
