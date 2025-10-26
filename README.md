@@ -1,8 +1,7 @@
 # Alfred (Automated Liquor Finishing Robotic Enhancement Device)
 
-## Start here.
-You can find all of our datasets and model checkpoints and follow along with this tutorial in our Hugging Face repo.
-`https://huggingface.co/dll-hackathon-102025`
+## Start here
+You can find all of our datasets and model checkpoints and follow along with this tutorial in our Hugging Face repo: [https://huggingface.co/dll-hackathon-102025](https://huggingface.co/dll-hackathon-102025)
 
 ## Setup the SO-101 leader and follower arms
 - [Configure Motors](https://huggingface.co/blog/nvidia/gr00t-n1-5-so101-tuning)
@@ -71,7 +70,7 @@ python -m lerobot.record \
     --dataset.single_task="Put orange slice in glass"
 ```
 
-## SO-101 Data Collection via Teleoperation
+## SO-101 data collection via teleoperation
 ```bash
 # Test teleoperation and visualize camera feeds in Rerun before recording datasets.
 python -m lerobot.teleoperate \
@@ -209,7 +208,8 @@ python eval_lerobot.py \
     --lang_instruction="put orange slice in glass" \
 
 ```
-
+## Results
+One old-fashioned, coming right up!
 
 <details>
 <summary><strong>Resources/References</strong></summary>
